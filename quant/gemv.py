@@ -1,6 +1,6 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
-os.environ["CUDA_LAUNCH_BLOCKING"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_LAUNCH_BLOCKING"]="0"
 import numpy as np
 import torch
 # import ipdb

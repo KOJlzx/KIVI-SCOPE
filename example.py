@@ -18,7 +18,6 @@ config.v_bits = 2
 config.group_size = 32 
 config.residual_length = 32 # corresponding to the number of recent fp16 tokens
 config.use_flash = True
-print("---")
 
 model = LlamaForCausalLM_KIVI.from_pretrained(
     # pretrained_model_name_or_path='meta-llama/Llama-2-7b-hf',

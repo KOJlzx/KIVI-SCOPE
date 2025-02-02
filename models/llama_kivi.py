@@ -13,6 +13,13 @@ from transformers.models.llama.configuration_llama import *
 from transformers.models.llama.modeling_llama import *
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
 
+
+
+from flash_attn.bert_padding import index_first_axis, pad_input, unpad_input  # noqa
+from flash_attn import flash_attn_func, flash_attn_varlen_func
+
+
+
 _CONFIG_FOR_DOC = "LlamaConfig"
 
 
@@ -522,8 +529,37 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
         return attn_output
 
 
+
+
+    def _get_unpad_data(attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, int]:
+        """
+        Retrieves indexing data required to repad unpadded (ragged) tensors.
+
+        Arguments:
+            attention_mask (`torch.Tensor`):
+                Boolean or int tensor of shape (batch_size, sequence_length), 1 means valid and 0 means not valid.
+
+        Return:
+            indices (`torch.Tensor`):
+                The indices of non-masked tokens from the flattened input sequence.
+            cu_seqlens (`torch.Tensor`):
+                The cumulative sequence lengths, used to index into ragged (unpadded) tensors. `cu_seqlens` shape is (batch_size + 1,).
+            max_seqlen_in_batch (`int`):
+                Maximum sequence length in batch.
+        """
+        seqlens_in_batch = attention_mask.sum(dim=-1, dtype=torch.int32)
+        indices = torch.nonzero(attention_mask.flatten(), as_tuple=False).flatten()
+        max_seqlen_in_batch = seqlens_in_batch.max().item()
+        cu_seqlens = F.pad(torch.cumsum(seqlens_in_batch, dim=0, dtype=torch.int32), (1, 0))
+        return (
+            indices,
+            cu_seqlens,
+            max_seqlen_in_batch,
+        )
+        
+        
     def _upad_input(self, query_layer, key_layer, value_layer, attention_mask, query_length):
-        indices_k, cu_seqlens_k, max_seqlen_in_batch_k = _get_unpad_data(attention_mask)
+        indices_k, cu_seqlens_k, max_seqlen_in_batch_k = self._get_unpad_data(attention_mask)
         batch_size, kv_seq_len, num_key_value_heads, head_dim = key_layer.shape
 
         key_layer = index_first_axis(

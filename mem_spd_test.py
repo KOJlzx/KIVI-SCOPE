@@ -5,6 +5,7 @@ from models.llama_kivi import LlamaForCausalLM_KIVI
 from transformers import LlamaConfig, AutoTokenizer
 import time
 
+torch.cuda.empty_cache()
 K_BITS = 2
 V_BITS = 2
 GROUP_SIZE = 32
@@ -12,11 +13,12 @@ RESIDUAL_LENGTH = 128
 BATCH_SIZE = 96
 PATH_TO_YOUR_SAVE_DIR = './cached_models'
 
-model_name_or_path = 'meta-llama/Llama-2-7b-hf'
+model_name_or_path = 'meta-llama/Llama-3.2-1B-Instruct'
 config = LlamaConfig.from_pretrained(model_name_or_path)
 config.k_bits = K_BITS # current support 2/4 bit for KV Cache
 config.v_bits = V_BITS # current support 2/4 bit for KV Cache
 config.group_size = GROUP_SIZE
+config.use_flash = True
 config.residual_length = RESIDUAL_LENGTH # the number of recent fp16 tokens
 CACHE_DIR = PATH_TO_YOUR_SAVE_DIR
 
@@ -43,8 +45,7 @@ else:
 tokenizer = AutoTokenizer.from_pretrained(
     model_name_or_path, 
     use_fast=False, 
-    trust_remote_code=True, 
-    tokenizer_type='llama')
+    trust_remote_code=True)
 
 model.cuda().eval()
 
@@ -64,7 +65,7 @@ with torch.no_grad():
     torch.cuda.synchronize()
     st = time.time()
     for i in range(num_repeats):
-        outputs = model.generate(**inputs, max_new_tokens=output_length)
+        outputs = model.generate(input_ids, max_new_tokens=output_length)
     torch.cuda.synchronize()
     print(f'used time: {(time.time() - st) / num_repeats * 1000} ms')
     used_mem = torch.cuda.max_memory_allocated()

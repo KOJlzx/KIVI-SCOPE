@@ -111,8 +111,7 @@ if __name__ == '__main__':
         config = LlamaConfig.from_pretrained(model_args.model_name_or_path)
         tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, 
                                             use_fast=False, 
-                                            trust_remote_code=True, 
-                                            tokenizer_type='llama')
+                                            trust_remote_code=True)
                                             # model_max_length=training_args.model_max_length)
     elif 'mistral' in model_args.model_name_or_path.lower():
         config = MistralConfig.from_pretrained(model_args.model_name_or_path)
@@ -192,6 +191,7 @@ if __name__ == '__main__':
         datasets = ["qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "gov_report", "multi_news", 
                     "trec", "triviaqa", "samsum", "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     else:
+        # datasets = ["triviaqa", "qasper"]
         datasets = ["triviaqa", "qasper", "trec", "samsum", "lcc", "repobench-p", "qmsum", "multi_news"]
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
     dataset2prompt = json.load(open("config/dataset2prompt.json", "r"))
@@ -202,6 +202,8 @@ if __name__ == '__main__':
     if not os.path.exists("pred_e"):
         os.makedirs("pred_e")
     for dataset in datasets:
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         if data_args.e:
             data = load_dataset('THUDM/LongBench', f"{dataset}_e", split='test')
             if not os.path.exists(f"pred_e/{model_name}_{max_length}_{model_args.k_bits}bits_group{model_args.group_size}_residual{model_args.residual_length}"):
@@ -219,3 +221,6 @@ if __name__ == '__main__':
             for pred in preds:
                 json.dump(pred, f, ensure_ascii=False)
                 f.write('\n')
+        torch.cuda.synchronize()
+        with open("memory.txt", "w", encoding="utf-8") as f:
+            f.write(f"{dataset}'s peak memory: {torch.cuda.max_memory_allocated() / 1024 ** 3}GB\n")

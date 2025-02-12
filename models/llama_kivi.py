@@ -18,7 +18,7 @@ from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_m
 from flash_attn.bert_padding import index_first_axis, pad_input, unpad_input  # noqa
 from flash_attn import flash_attn_func, flash_attn_varlen_func
 
-
+from models.kv_utils import init_pyramidkv,init_snapkv,init_H2O,init_StreamingLLM,init_ALLKV
 
 _CONFIG_FOR_DOC = "LlamaConfig"
 
@@ -192,7 +192,7 @@ class LlamaAttention_KIVI(nn.Module):
                     value_states_quant = value_states_quant_new
                     value_scale = scale
                     value_mn = mn
-
+        # prefill 
         else:
             attn_weights = torch.matmul(query_states, 
                                         key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
@@ -384,7 +384,9 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             value_states_full = torch.cat([value_states_full, value_states], dim=2)
             value_full_length = value_states_full.shape[-2]
             if value_states_quant is None:
-                attn_output = torch.matmul(attn_weights, value_states_full)
+                # print(attn_weights.shape)
+                # print(value_states_full.shape)
+                attn_output = torch.matmul(attn_weights, repeat_kv(value_states_full, self.num_key_value_groups))
             else:
                 attn_output = cuda_bmm_fA_qB_outer(self.group_size, attn_weights[:, :, :, :-value_full_length], value_states_quant, 
                                                 value_scale, value_mn, self.v_bits)

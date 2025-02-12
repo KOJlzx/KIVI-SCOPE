@@ -1,11 +1,11 @@
 # model e.g.: meta-llama/Llama-2-7b-hf
 
-gpuid=$1
-k_bits=$2
-v_bits=$3
-group_size=$4
-residual_length=$5
-model=$6
+gpuid=0
+k_bits=2
+v_bits=2
+group_size=32
+residual_length=128
+model=meta-llama/Llama-3.2-1B-Instruct
 e=0
 
 CUDA_VISIBLE_DEVICES=$gpuid python pred_long_bench.py --model_name_or_path $model \

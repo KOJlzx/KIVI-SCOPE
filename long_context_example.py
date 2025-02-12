@@ -7,7 +7,7 @@ from models.llama_kivi import LlamaForCausalLM_KIVI
 from transformers import LlamaConfig, AutoTokenizer
 from datasets import load_dataset
 
-config = LlamaConfig.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+config = LlamaConfig.from_pretrained("meta-llama/Llama-3.2-1B-Instruct")
 config.k_bits = 2 # KiVi currently support 2/4 K/V bits
 config.v_bits = 2
 config.group_size = 32 
@@ -16,7 +16,7 @@ config.use_flash = True # use flash-attention with KiVi for long context inferen
 CACHE_DIR = "/scratch/cached_model"
 
 model = LlamaForCausalLM_KIVI.from_pretrained(
-    pretrained_model_name_or_path="meta-llama/Llama-3.1-8B-Instruct",
+    pretrained_model_name_or_path="meta-llama/Llama-3.2-1B-Instruct",
     config=config,
     # cache_dir=CACHE_DIR,
     low_cpu_mem_usage=True,
@@ -24,7 +24,7 @@ model = LlamaForCausalLM_KIVI.from_pretrained(
 ).cuda()
 
 enc = AutoTokenizer.from_pretrained(
-    "meta-llama/Llama-3.1-8B-Instruct", 
+    "meta-llama/Llama-3.2-1B-Instruct", 
     use_fast=False, 
     trust_remote_code=True,)
 

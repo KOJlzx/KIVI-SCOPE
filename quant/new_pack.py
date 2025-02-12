@@ -249,5 +249,5 @@ def triton_quantize_and_pack_along_last_dim(data: torch.Tensor, group_size: int,
 								data.shape[1], feat_per_int, 
 								BLOCK_SIZE_N=BLOCK_SIZE_N, 
 								num_warps=8)
-	return code.view(B, nh, D, -1), scale.reshape(scale_mn_shape), mn.reshape(scale_mn_shape)
+	return code.view(B, nh, D, -1), scale.reshape(scale_mn_shape), mn.reshape(scale_mn_shape), mx.reshape(scale_mn_shape)
 	

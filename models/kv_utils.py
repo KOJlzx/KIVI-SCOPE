@@ -3,7 +3,8 @@ import time
 import torch.nn.functional as F
 import torch.nn as nn
 import math
-
+from quant.new_pack import triton_quantize_and_pack_along_last_dim
+from quant.matmul import cuda_bmm_fA_qB_outer
 
 # perform qk calculation and get indices
 # this version will not update in inference mode
@@ -19,6 +20,26 @@ def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
         return hidden_states
     hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
     return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
+
+
+def get_repeat_tensor(x: torch.Tensor, g: int):
+    """
+    [x1, x2, x3, ... , xn] to 
+    [x1 * g, x1 * g + 1, x1 * g + 2, ..., x1 * g + g - 1,
+     x2 * g, x2 * g + 1, x2 * g + 2, ..., x2 * g + g - 1,
+     ...
+    xn * g, xn * g + 1, xn * g + 2, ..., xn * g + g - 1]
+    """
+    indices = torch.arange(g)
+    expanded_indices = indices.repeat(x.shape[-1], 1)
+    # print('expanded_indices', expanded_indices)
+    # 计算结果
+    result = x.unsqueeze(-1) * g + expanded_indices
+    # print('result', result)
+    # 展平结果张量
+    res = torch.flatten(result, start_dim=-2)
+    
+    return res
 
 
 class PyramidKVCluster():
@@ -723,8 +744,115 @@ class ALLKVCluster():
                 return key_states, value_states
         else:
             raise ValueError('Decoding metric not supported')
+        
 
+    def update_quant_kv_in_decoding(self, query_states, past_key_value, attention_mask, num_key_value_groups, group_size, bits)->torch.Tensor: 
+        
+        key_states_quant_trans = past_key_value[0]
+        key_states_full = past_key_value[1]
+        key_scale_trans = past_key_value[2]
+        key_mn_trans = past_key_value[3]
+        value_states_quant = past_key_value[4]
+        value_states_full = past_key_value[5]
+        value_scale = past_key_value[6]
+        value_mn = past_key_value[7]
+        key_mx_trans = past_key_value[8]
+                
+        
+        decoding_window_size = self.decoding_window_size
+        window_size = self.decoding_recent_size       
+        feat_per_int = 32 / bits
+        
+        assert group_size % feat_per_int == 0
+        
+        bsz, num_heads, head_dim, quant_k_len = key_states_quant_trans.shape
+        full_k_len = key_states_full.shape[-1]
+        
+        if(self.max_capacity_prompt % group_size != 0):
+            self.max_capacity_prompt = (self.max_capacity_prompt // group_size + 1) * group_size
+        
+        if(self.max_capacity_prompt + decoding_window_size > quant_k_len * feat_per_int + full_k_len):
+            return past_key_value
+        
+        b1 = decoding_window_size - window_size
+        b2 = window_size - full_k_len
+        
+        assert b2 >= 0
+        
+        # prefill cache
+        prefill_indices_quant = torch.tensor(range(self.max_capacity_prompt // feat_per_int), dtype=torch.int32).to(key_states_quant_trans.device)
+        prefill_indices_quant = prefill_indices_quant.unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(bsz, num_heads, head_dim, 1)
+        prefill_indices_mx = torch.tensor(range(self.max_capacity_prompt // group_size), dtype=torch.int32).to(key_states_quant_trans.device)
+        prefill_indices_mx = prefill_indices_mx.unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(bsz, num_heads, head_dim, 1)
+        
+        
+        if(b2 % group_size != 0):
+            b2 = (b2 // group_size + 1) * group_size
+        if(b1 % group_size != 0):
+            b1 = (b1 // group_size + 1) * group_size
+        
+        # b2 % group_size == 0  and self.max_capacity_prompt % group_size == 0 ==>> (tot - b2 - max) % group_size == 0
+        key_mx_trans_b1 = key_mx_trans[..., self.max_capacity_prompt // group_size: -b2 // group_size]
+        attention = torch.matmul(query_states, key_mx_trans_b1) / math.sqrt(head_dim)
+        attention = nn.functional.softmax(attention, dim = -1, dtype=torch.float32).to(key_states_quant_trans.device)
+        
+        attn_weights_sum = attention.sum(dim = -2)
+        
+        b1_indices_mx = attn_weights_sum.topk(b1 // group_size, dim = -1).indices
+        b1_indices_quant = get_repeat_tensor(b1_indices_mx, group_size // feat_per_int)
+        
+        
+        
+        
+        #[1, 5, 8] ==>> [1, 2, 10, 11, 16, 17]
+        b1_indices_quant += self.max_capacity_prompt // feat_per_int
+        b1_indices_quant = b1_indices_quant.unsqueeze(-2).expand(-1, -1, head_dim, -1)
 
+        indices_quant_k = torch.cat([prefill_indices_quant, b1_indices_quant], dim=2)
+        indices_quant_v = indices_quant_k.transpose(2, 3)
+        
+        key_states_quant_trans_compress = key_states_quant_trans[..., : -b2 // feat_per_int].gather(dim = 3, index = indices_quant_k)
+        value_states_quant_compress = value_states_quant[..., : -b2 // feat_per_int].gather(dim = 2, index = indices_quant_v)
+        k_states_quant_trans_cur = key_states_quant_trans[..., -b2 // feat_per_int]
+        v_states_quant_cur = value_states_quant[..., -b2 // feat_per_int, :]
+        key_states_quant_trans = torch.cat([key_states_quant_trans_compress, k_states_quant_trans_cur], dim = 3)
+        value_states_quant = torch.cat([value_states_quant_compress, v_states_quant_cur], dim=2)
+        
+        b1_indices_mx += self.max_capacity_prompt // group_size
+        b1_indices_mx = b1_indices_mx.unsqueeze(-2).expand(-1, -1, head_dim, -1)
+        
+        indices_mx_k = torch.cat([prefill_indices_mx, b1_indices_mx], dim=2)
+        indices_mx_v = indices_mx_k.transpose(2, 3)
+        
+        key_mx_trans_compress = key_mx_trans[..., : -b2 // group_size].gather(dim = 3, index = indices_mx_k)
+        key_mn_trans_compress = key_mn_trans[..., : -b2 // group_size].gather(dim = 3, index = indices_mx_k)
+        key_scale_trans_compress = key_scale_trans[..., : -b2 // group_size].gather(dim = 3, index = indices_mx_k)
+        value_scale_compress = value_scale[..., : -b2 // group_size].gather(dim = 2, index = indices_mx_v)
+        value_mn_compress = value_mn[..., : -b2 // group_size].gather(dim = 2, index = indices_mx_v)
+        k_mx_trans_cur = key_mx_trans[..., -b2 // group_size]
+        k_mn_trans_cur = key_mn_trans[..., -b2 // group_size]
+        k_scale_trans_cur = key_scale_trans[..., -b2 // group_size]
+        v_scale_cur = value_scale[..., -b2 // group_size, :]
+        v_mn_cur = value_mn[..., -b2 // group_size, :]
+        key_mx_trans = torch.cat([key_mx_trans_compress, k_mx_trans_cur], dim=3)
+        key_mn_trans = torch.cat([key_mn_trans_compress, k_mn_trans_cur], dim=3)
+        key_scale_trans = torch.cat([key_scale_trans_compress, k_scale_trans_cur], dim=3)
+        value_scale = torch.cat([value_scale_compress, v_scale_cur], dim=2)
+        value_mn = torch.cat([value_mn_compress, v_mn_cur], dim=2)
+        
+        past_key_value[0] = key_states_quant_trans
+        past_key_value[1] = key_states_full
+        past_key_value[2] = key_scale_trans
+        past_key_value[3] = key_mn_trans
+        past_key_value[4] = value_states_quant
+        past_key_value[5] = value_states_full
+        past_key_value[6] = value_scale
+        past_key_value[7] = value_mn
+        past_key_value[8] = key_mx_trans
+        
+        return past_key_value
+        
+        
 def init_pyramidkv(self, num_hidden_layers):
     if not hasattr(self, "kv_cluster"):
         if not hasattr(self.config, 'window_size'):

@@ -109,10 +109,13 @@ class LlamaAttention_KIVI(nn.Module):
             kv_seq_len += past_key_value[-1]
         cos, sin = self.rotary_emb(value_states, position_ids)
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+        # print(query_states.shape, key_states.shape, value_states.shape)
         # assert self.num_key_value_groups == 1
         # [bsz, nh, t, hd]
+        value_states = repeat_kv(value_states, self.num_key_value_groups)
+        key_states = repeat_kv(key_states, self.num_key_value_groups)
         if past_key_value is not None:
-            past_key_value = self.kv_cluster.update_quant_kv_in_decoding(query_states=query_states, past_key_value=past_key_value, group_size=self.group_size, bits=self.k_bits)
+            # past_key_value = self.kv_cluster.update_quant_kv_in_decoding(query_states=query_states, past_key_value=past_key_value, group_size=self.group_size, bits=self.k_bits, num_key_value_groups=self.num_key_value_groups)
             
             key_states_quant_trans = past_key_value[0]
             key_states_full = past_key_value[1]
@@ -124,7 +127,26 @@ class LlamaAttention_KIVI(nn.Module):
             value_mn = past_key_value[7]
             
             key_mx_trans = past_key_value[8]
-
+            
+            kv_cache_len = key_states_full.shape[-2] if key_states_full is not None else 0
+            kv_cache_len += self.group_size * (key_mn_trans.shape[-1] if key_mn_trans is not None else 0)
+            kv_cache_len += key_states.shape[-2]
+            causal_mask = attention_mask[:, :, :, :kv_cache_len] if attention_mask is not None else None
+            # pkv[0]=torch.Size([1, 8, 64, 64])
+            # pkv[1]=torch.Size([1, 8, 125, 64])
+            # pkv[2]=torch.Size([1, 8, 64, 32])
+            # pkv[3]=torch.Size([1, 8, 64, 32])
+            # pkv[4]=torch.Size([1, 8, 1021, 4])
+            # pkv[5]=torch.Size([1, 8, 128, 64])
+            # pkv[6]=torch.Size([1, 8, 1021, 2])
+            # pkv[7]=torch.Size([1, 8, 1021, 2])
+            # pkv[8]=torch.Size([1, 8, 64, 32])
+            # if cnt <= 9:
+            #     for i in range(9):
+            #         if past_key_value[i] is not None:
+            #             print(f"pkv[{i}]={past_key_value[i].shape}") 
+            #     cnt += 1
+            
             if key_states_quant_trans is not None:
                 att_qkquant = cuda_bmm_fA_qB_outer(self.group_size, query_states, key_states_quant_trans, 
                                 key_scale_trans, key_mn_trans, self.k_bits)
@@ -135,7 +157,7 @@ class LlamaAttention_KIVI(nn.Module):
                 key_states_full = torch.cat([key_states_full, key_states], dim=2)
             else:
                 key_states_full = key_states
-            att_qkfull = torch.matmul(query_states, repeat_kv(key_states_full, self.num_key_value_groups).transpose(2, 3))
+            att_qkfull = torch.matmul(query_states, key_states_full.transpose(2, 3))
             if att_qkquant is not None:
                 attn_weights = torch.cat([att_qkquant, att_qkfull], dim=-1) / math.sqrt(self.head_dim)
             else:
@@ -158,18 +180,18 @@ class LlamaAttention_KIVI(nn.Module):
                     key_mn_trans = key_mn_trans_new
                     key_mx_trans = key_mx_trans_new
 
-            if attn_weights.size() != (bsz, self.num_heads, q_len, kv_seq_len):
+            if attn_weights.size() != (bsz, self.num_heads, q_len, kv_cache_len):
                 raise ValueError(
-                    f"Attention weights should be of size {(bsz, self.num_heads, q_len, kv_seq_len)}, but is"
+                    f"Attention weights should be of size {(bsz, self.num_heads, q_len, kv_cache_len)}, but is"
                     f" {attn_weights.size()}"
                 )
 
             if attention_mask is not None:
-                if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
+                if causal_mask.size() != (bsz, 1, q_len, kv_cache_len):
                     raise ValueError(
-                        f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
+                        f"Attention mask should be of size {(bsz, 1, q_len, kv_cache_len)}, but is {attention_mask.size()}"
                     )
-                attn_weights = attn_weights + attention_mask
+                attn_weights = attn_weights + causal_mask
                 attn_weights = torch.max(
                     attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min)
                 )
@@ -179,14 +201,20 @@ class LlamaAttention_KIVI(nn.Module):
 
             value_states_full = torch.cat([value_states_full, value_states], dim=2)
             value_full_length = value_states_full.shape[-2]
+            # print(value_full_length)
+            if value_states.shape[-2] != 1:
+                print("value_state_full, value_states")
+                print(value_states_full.shape, value_states.shape)
             if value_states_quant is None:
-                attn_output = torch.matmul(attn_weights, repeat_kv(value_states_full, self.num_key_value_groups))
+                attn_output = torch.matmul(attn_weights, value_states_full)
             else:
                 attn_output = cuda_bmm_fA_qB_outer(self.group_size, attn_weights[:, :, :, :-value_full_length], value_states_quant, 
                                                 value_scale, value_mn, self.v_bits)
-                attn_output += torch.matmul(attn_weights[:, :, :, -value_full_length:], repeat_kv(value_states_full, self.num_key_value_groups))
+                attn_output += torch.matmul(attn_weights[:, :, :, -value_full_length:], value_states_full)
             
             if value_full_length > self.residual_length:
+                # print(value_full_length)
+                # print(self.residual_length)
                 assert value_full_length == self.residual_length + 1
                 value_states_quant_new, scale, mn, *_ = triton_quantize_and_pack_along_last_dim(value_states_full[:, :, :1, :].contiguous(), 
                                                                                                 self.group_size, 
@@ -202,7 +230,14 @@ class LlamaAttention_KIVI(nn.Module):
                     value_mn = mn
         # prefill 
         else:
-            key_states, value_states = self.kv_cluster.update_kv(key_states, value_states)
+            # print(key_states.shape, value_states.shape, query_states.shape)
+            # key_states = key_states[:, :, -3548:, :]
+            # value_states = value_states[:, :, -3548:, :]
+            key_states, value_states = self.kv_cluster.update_kv_snap(key_states, query_states, value_states)
+            print(key_states.shape, value_states.shape, query_states.shape)
+            # torch.cuda.empty_cache()
+            kv_cache_len = key_states.shape[-2]
+            causal_mask = attention_mask[:, :, :, : kv_cache_len] if attention_mask is not None else None
             attn_weights = torch.matmul(query_states, 
                                         key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
             # quantize
@@ -236,18 +271,18 @@ class LlamaAttention_KIVI(nn.Module):
                                                                                                 self.group_size, 
                                                                                                 self.v_bits)
 
-            if attn_weights.size() != (bsz, self.num_heads, q_len, kv_seq_len):
+            if attn_weights.size() != (bsz, self.num_heads, q_len, kv_cache_len):
                 raise ValueError(
-                    f"Attention weights should be of size {(bsz, self.num_heads, q_len, kv_seq_len)}, but is"
+                    f"Attention weights should be of size {(bsz, self.num_heads, q_len, kv_cache_len)}, but is"
                     f" {attn_weights.size()}"
                 )
 
             if attention_mask is not None:
-                if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
+                if causal_mask.size() != (bsz, 1, q_len, kv_cache_len):
                     raise ValueError(
-                        f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
+                        f"Attention mask should be of size {(bsz, 1, q_len, kv_cache_len)}, but is {attention_mask.size()}"
                     )
-                attn_weights = attn_weights + attention_mask
+                attn_weights = attn_weights + causal_mask
                 attn_weights = torch.max(
                     attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min)
                 )
@@ -257,7 +292,10 @@ class LlamaAttention_KIVI(nn.Module):
                 attn_weights, dim=-1, dtype=torch.float32
             ).to(query_states.dtype)
 
-            attn_output = torch.matmul(attn_weights, value_states) 
+
+            # print(key_states.shape, value_states.shape, attn_weights.shape, self.num_key_value_groups)
+            attn_output = torch.matmul(attn_weights, value_states)
+            # print(attn_output.shape)
         past_key_value = (key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, kv_seq_len) if use_cache else None
         if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
             raise ValueError(
@@ -316,7 +354,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             query_states = self.q_proj(hidden_states)
             key_states = self.k_proj(hidden_states)
             value_states = self.v_proj(hidden_states)
-
+        init_ALLKV(self)
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
         value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
@@ -328,6 +366,9 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
         # assert self.num_key_value_groups == 1
         # [bsz, nh, t, hd]
+        value_states = repeat_kv(value_states, self.num_key_value_groups)
+        key_states = repeat_kv(key_states, self.num_key_value_groups)
+        # print(query_states.shape, key_states.shape, value_states.shape)
         if past_key_value is not None:
             key_states_quant_trans = past_key_value[0]
             key_states_full = past_key_value[1]
@@ -354,7 +395,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
                 key_states_full = torch.cat([key_states_full, key_states], dim=2)
             else:
                 key_states_full = key_states
-            att_qkfull = torch.matmul(query_states, repeat_kv(key_states_full, self.num_key_value_groups).transpose(2, 3))
+            att_qkfull = torch.matmul(query_states, key_states_full.transpose(2, 3))
             if att_qkquant is not None:
                 attn_weights = torch.cat([att_qkquant, att_qkfull], dim=-1) / math.sqrt(self.head_dim)
             else:
@@ -401,11 +442,11 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             if value_states_quant is None:
                 # print(attn_weights.shape)
                 # print(value_states_full.shape)
-                attn_output = torch.matmul(attn_weights, repeat_kv(value_states_full, self.num_key_value_groups))
+                attn_output = torch.matmul(attn_weights, value_states_full)
             else:
                 attn_output = cuda_bmm_fA_qB_outer(self.group_size, attn_weights[:, :, :, :-value_full_length], value_states_quant, 
                                                 value_scale, value_mn, self.v_bits)
-                attn_output += torch.matmul(attn_weights[:, :, :, -value_full_length:], repeat_kv(value_states_full, self.num_key_value_groups))
+                attn_output += torch.matmul(attn_weights[:, :, :, -value_full_length:], value_states_full)
             attn_output = attn_output.transpose(1, 2).contiguous()
             if value_full_length > self.residual_length:
                 assert value_full_length == self.residual_length + 1
@@ -424,6 +465,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
 
         else:
             # print(f"kivi with flash! {self.k_bits}")
+            key_states, value_states = self.kv_cluster.update_kv_snap(key_states, query_states, value_states)
             input_dtype = query_states.dtype
             if input_dtype == torch.float32:
                 # Handle the case where the model is quantized

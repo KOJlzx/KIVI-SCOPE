@@ -128,12 +128,13 @@ if __name__ == '__main__':
             config.v_bits = model_args.v_bits
             config.group_size = model_args.group_size
             config.residual_length = model_args.residual_length
-            config.use_flash = True # Note: We activate the flashattention to speed up the inference
+            config.use_flash = False # Note: We activate the flashattention to speed up the inference
+            print("used llamaForCausalLM_KIVI")
             model = LlamaForCausalLM_KIVI.from_pretrained(
                 pretrained_model_name_or_path=model_args.model_name_or_path,
                 config=config,
                 cache_dir=training_args.cache_dir,
-                torch_dtype=dtype,
+                torch_dtype=torch.float16,
                 low_cpu_mem_usage=True,
                 device_map="auto",
             )
@@ -156,7 +157,7 @@ if __name__ == '__main__':
             config.v_bits = model_args.v_bits
             config.group_size = model_args.group_size
             config.residual_length = model_args.residual_length
-            config.use_flash = True
+            config.use_flash = False
             model = MistralForCausalLM_KIVI.from_pretrained(
                 pretrained_model_name_or_path=model_args.model_name_or_path,
                 config=config,
@@ -191,8 +192,8 @@ if __name__ == '__main__':
         datasets = ["qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "gov_report", "multi_news", 
                     "trec", "triviaqa", "samsum", "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     else:
-        # datasets = ["triviaqa", "qasper"]
-        datasets = ["triviaqa", "qasper", "trec", "samsum", "lcc", "repobench-p", "qmsum", "multi_news"]
+        datasets = ["triviaqa"]
+        # datasets = ["triviaqa", "qasper", "trec", "samsum", "lcc", "repobench-p", "qmsum", "multi_news"]
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
     dataset2prompt = json.load(open("config/dataset2prompt.json", "r"))
     dataset2maxlen = json.load(open("config/dataset2maxlen.json", "r"))

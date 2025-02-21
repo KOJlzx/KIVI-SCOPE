@@ -1,1 +1,1 @@
-multi_news's peak memory: 5.3139424324035645GB
+triviaqa's peak memory: 6.438380718231201GB

@@ -10,7 +10,7 @@ K_BITS = 2
 V_BITS = 2
 GROUP_SIZE = 32
 RESIDUAL_LENGTH = 128
-BATCH_SIZE = 96
+BATCH_SIZE = 1
 PATH_TO_YOUR_SAVE_DIR = './cached_models'
 
 model_name_or_path = 'meta-llama/Llama-3.2-1B-Instruct'
@@ -18,7 +18,7 @@ config = LlamaConfig.from_pretrained(model_name_or_path)
 config.k_bits = K_BITS # current support 2/4 bit for KV Cache
 config.v_bits = V_BITS # current support 2/4 bit for KV Cache
 config.group_size = GROUP_SIZE
-config.use_flash = True
+config.use_flash = False
 config.residual_length = RESIDUAL_LENGTH # the number of recent fp16 tokens
 CACHE_DIR = PATH_TO_YOUR_SAVE_DIR
 
@@ -51,12 +51,15 @@ model.cuda().eval()
 
 context = []
 batch_size = BATCH_SIZE
-prompt_lenth = 160
-output_length = 338
-num_repeats = 3
+prompt_lenth = 90
+output_length = 3000
+num_repeats = 1
 for _ in range(batch_size):
     string = 't,' * (prompt_lenth // 2)
     context.append(string[:-1])
+for idx, value in enumerate(context):
+    context[idx] = "output 3000 words"
+
 inputs = tokenizer(context, return_tensors="pt").to('cuda')
 input_ids = inputs['input_ids']
 print(f"bs: {batch_size}, seqlen: {input_ids.shape[1]}+{output_length}\nmodel:{model_name_or_path}")

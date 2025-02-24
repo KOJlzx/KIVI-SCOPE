@@ -1,1 +1,1 @@
-triviaqa's peak memory: 6.438380718231201GB
+triviaqa's peak memory: 5.296970844268799GB

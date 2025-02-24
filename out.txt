@@ -1,0 +1,391 @@
+##############################
+1 prompt:
+Answer the question based on the given passage. Only give me the answer and do not output any other words. The following are some examples.
+
+Passage:
+Adam's apple
+The laryngeal prominence (commonly referred to as Adam's apple), a feature of the human neck, is the lump or protrusion that is formed by the angle of the thyroid cartilage surrounding the larynx.
+
+Structure
+
+The structure of the laryngeal prominence forms a bump under the skin. It is larger in adult men, in whom it is usually clearly visible and palpable. In women, the bump is much less visible and is hardly perceived on the upper edge of the thyroid cartilage. 
+
+The meeting point of the two portions of the cartilage generally forms an acute angle (of about 90°) in men, while in women it forms an open arc (of about 120°).
+
+Sex difference
+
+Although both sexes have it, the Adam's apple is considered to be a characteristic feature of adult men, because its size tends to increase considerably during puberty. 
+
+Its development is considered a secondary sexual characteristic of males that appears as a result of hormonal activity. Its level of development varies among individuals and the widening of that area in the larynx can occur very suddenly and quickly.
+
+The laryngeal prominence is more prominent in adult males than in females because of the difference in the size of the angle: 90° in males and 120° in females.
+
+Function 
+
+The Adam's apple, in conjunction with the thyroid cartilage which forms it, helps to protect the walls and the frontal part of the larynx, including the vocal cords (which are located directly behind it). It is found in both women and men.
+
+Another function of the laryngeal prominence is related to the deepening of the voice. During adolescence, the thyroid cartilage grows together with the larynx. Consequently, the laryngeal prominence grows in size mainly in men. Together, a larger soundboard is made up in phonation apparatus and, as a result, the man gets a deeper voice note.  
+
+Society and culture
+
+Cosmetic surgery to reduce the size of laryngeal prominence is called chondrolaryngoplasty (thyroid chondroplasty).  The surgery is effective, such that complications tend to be few and, if present, transient. 
+
+History
+
+Etymology
+
+There are two main theories as to the origin of the term "Adam's apple". 
+The "Brewer's Dictionary of Phrase and Fable" and the 1913 edition of Webster's Dictionary point at an ancient belief that a piece of forbidden fruit was embedded in Adam's throat (the first man, according to Abrahamic religions).  However, neither the Bible nor other Judeo-Christian Islamic writings mention such a story. In fact, the biblical story does not even specify the type of fruit that Adam ate. 
+
+Linguist Alexander Gode claimed that the Latin phrase to designate the laryngeal prominence was very probably translated incorrectly from the beginning. The phrase in Latin was "pomum Adami" (literally: 'Adam's apple'). This, in turn, came from the Hebrew "tappuach ha adam" meaning "apple of man". The confusion lies in the fact that in Hebrew language the proper name "Adam" (אדם) literally means "man", while the late Hebrew word used to refer  "bump" is very similar to the word used to refer "apple".   Proponents of this version contend that the subsequent phrases in Latin and other Romance languages represent a mistranslation from the start. 
+
+The medical term "prominentia laryngea" was introduced by the Basle Nomina Anatomica in 1895. 
+
+In the American South, goozle is used colloquially to describe the Adam's apple, likely derived from guzzle.    
+
+Additional images
+
+File:Slide9lll.JPG|Laryngeal prominence
+File:Slide5mmm.JPG|Laryngeal prominence
+File:Slide7ooo.JPG|Laryngeal prominence
+Question:
+What is the common name for the laryngeal prominence in the body?
+Answer:
+Adams Apple
+Passage:
+Uranophobia
+Fear of heaven, also known by its Greek-derived name uranophobia or ouranophobia, is a phobia that makes its sufferer fear heaven or the sky. 
+
+The origin of the word urano is Greek, meaning heaven, while phobia is Greek for fear.
+
+Causes
+
+The causes of Uranophobia, as with other phobias, can be linked to a combination of external events and internal susceptibility - of brain chemistry and life experiences.
+
+Fear of heaven may more specifically be related to the dread of punishment in the afterlife.  Psychoanalysis would see this as an animistic projection of the threatening and punitive powers of the parents  - heaven or the sky being a relatively late stage in the detachment of the superego from the actual parents. 
+
+Jewish tradition
+
+Jewish tradition highly valorised the fear of heaven, seeing it as a positive force linked both to wisdom and to personal humility. 
+
+Literary examples
+
+W. B. Yeats in his poem 'The Cold Heaven' asked rhetorically whether after death the ghost is:
+
+"stricken By the injustice of the skies for punishment?”
+Question:
+Uranophobia is the irrational fear of which place or state of bliss?
+Answer:
+Heaven
+Passage:
+The Three-Cornered Hat
+El sombrero de tres picos (The Three-Cornered Hat or Le tricorne) is a ballet choreographed by Léonide Massine to music by Manuel de Falla, commissioned by Sergei Diaghilev and premiered complete in 1919. It is not only a ballet with Spanish setting but one that also employs the techniques of Spanish dance (adapted and somewhat simplified) instead of classical ballet.   
+
+The story – a magistrate infatuated with a miller's faithful wife attempts to seduce her – derives from the novella by Pedro Antonio de Alarcón (born in Granada) and has been traced in film several times, usually in Spanish. The music has these sections:
+
+Act I
+*Introducción — Introduction
+*Atardecer - Sunset
+*Danza de la molinera (Farruca) — Dance of the Miller's Wife 
+*Las uvas — The Grapes
+Act II
+*Danza de los vecinos (Seguidillas) — Dance of the Neighbors
+*Danza del molinero (Farruca) — Dance of the Miller
+*Danza del corregidor — Dance of the Magistrate
+*Danza final (Jota)
+
+Composition History 
+
+As El corregidor y la molinera
+
+During World War I Manuel de Falla wrote a pantomime ballet in two scenes and called it The Magistrate and the Miller's Wife (El corregidor y la molinera). The work was scored for a small chamber orchestra and was performed in 1917.
+
+As El sombrero de tres picos
+
+Sergei Diaghilev of the Ballets Russes, saw the premiere of El corregidor y la molinera and commissioned Falla to rewrite it. The outcome was a two-act ballet scored for large orchestra called The Three-Cornered Hat (El sombrero de tres picos). This was first performed in London at the Alhambra Theatre on 22 July 1919. Sets and costumes were created by Pablo Picasso. Choreography was by Léonide Massine. Diaghilev asked Falla to conduct the premiere but the composer felt he was not experienced enough to conduct a work so complex and he handed the baton to Ernest Ansermet after one rehearsal. 
+Synopsis 
+
+Act One 
+
+After a short fanfare the curtain rises revealing a mill in Andalusia. The miller is trying to teach a pet blackbird to tell the time. He tells the bird to chirp twice, but instead it chirps three times. Annoyed, the miller scolds the bird and tells it to try again. The  bird now chirps four times. The miller gets angry at the bird again and his wife offers it a grape. The bird takes the grape and chirps twice. The miller and his wife laugh over this and continue their work. 
+
+Soon the magistrate, his wife, and their bodyguard pass by, taking their daily walk. The procession goes by and the couple returns to their work. The dandified, but lecherous, magistrate is heard coming back. The miller tells his wife that he will hide and that they will play a trick on the magistrate. 
+
+The miller hides and the magistrate sees the miller's wife dancing. After her dance she offers him some grapes. When the magistrate gets the grapes the miller's wife runs away with the magistrate following her. Finally he catches her, and the miller jumps out of a bush with a stick. The miller chases the magistrate away and the miller and his wife continue working.
+
+Act Two 
+
+That night, guests are at the miller's house. The miller dances to entertain them. His dance is interrupted by the magistrate's bodyguard, who has come to arrest him on trumped-up charges. After the miller is taken away, the guests leave one by one. The miller's wife goes to sleep and soon the magistrate comes to the mill. On his way to the door the magistrate trips and falls in the river. The miller's wife wakes up and runs away. 
+
+The magistrate undresses and hangs his clothes on a tree and goes to sleep in the miller's bed. The miller has escaped from prison and sees the magistrate in his bed. The miller thinks that the magistrate is sleeping with his wife and plans to switch clothes with the magistrate and avenge himself by seducing the magistrate's wife. The miller leaves, dressed as the magistrate, and the magistrate soon wakes up. He goes outside and sees that his clothes are gone, so he dresses in the miller's clothes. The bodyguard comes and sees the magistrate dressed as the miller and goes to arrest him. The miller's wife sees the bodyguard fighting with what looks like her husband and joins in the fight. The miller comes back and sees his wife in the fight and joins it to protect her. The magistrate explains the entire story and the ballet ends with the miller's guests tossing the magistrate up and down in a blanket.
+
+The Music 
+
+Throughout the ballet Falla uses traditional Andalusian folk music. The two songs sung by the mezzo-soprano are examples of cante jondo singing; this typically accompanies flamenco music and tells a sad story. At one point he quotes the opening of Beethoven's 5th Symphony. 
+
+Recordings 
+
+There are many recordings of the complete ballet, as well as of the suites extracted from it. In the early 1960s Ernest Ansermet, the original conductor of the work, recorded it in stereo for London Records (aka Decca). The music was played by the Orchestre de la Suisse Romande and the cante-jondo soloist was Teresa Berganza. It has also been recorded by such conductors as Rafael Fruhbeck de Burgos and Jesús López-Cobos, and Leonard Bernstein has recorded the two suites from the ballet with the New York Philharmonic.
+
+The original pantomime El corregidor y la molinera has been recorded by Josep Pons and Orquestra del Teatro Lliure for Harmonia Mundi.
+
+Film versions 
+
+The Paris Opera Ballet has recently issued a performance of the complete ballet on a DVD entitled Picasso and Dance. The performance uses not only Massine's original choreography, but actual reproductions of Picasso's sets and costumes. It is, so far, the only performance of the ballet issued on video.
+Question:
+Who wrote the music for the ballet 'The Three-Cornered Hat'?
+Answer:
+Manuel de Fallas
+Passage:
+Arctic Circle
+The Arctic Circle is the most northerly of the five major circles of latitude that mark maps of the Earth. The region north of this circle is known as the Arctic, and the zone just to the south is called the Northern Temperate Zone. North of the Arctic Circle, the sun is above the horizon for twenty-four continuous hours at least once per year (and therefore visible at midnight) and below the horizon for twenty-four continuous hours at least once per year (and therefore not visible at noon); this is also true within the equivalent polar circle in the Southern Hemisphere, the Antarctic Circle.
+
+The position of the Arctic Circle is not fixed; as of , it runs  north of the Equator.  Its latitude depends on the Earth's axial tilt, which fluctuates within a margin of 2° over a 40,000-year period, due to tidal forces resulting from the orbit of the Moon.  Consequently, the Arctic Circle is currently drifting northwards at a speed of about 15 m per year.
+
+Etymology 
+
+The word "arctic" comes from the Greek word ἀρκτικός (arktikos: "near the Bear, northern")  and that from the word ἄρκτος (arktos: "bear").  The name refers either to the constellation Ursa Major, the "Great Bear", which is prominent in the northern portion of the celestial sphere, or to the constellation Ursa Minor, the "Little Bear", which contains Polaris, the Pole star, also known as the North Star. 
+
+Midnight sun and polar night
+
+The Arctic Circle is the southernmost latitude in the Northern Hemisphere at which the sun can remain continuously above or below the horizon for twenty-four hours; as a result, at least once each year at any location within the Arctic Circle the sun is visible at local midnight, and at least once it is not visible at local noon.  
+
+Directly on the Arctic Circle these events occur, in principle, exactly once per year: at the June and December solstices, respectively. However, because of atmospheric refraction and mirages, and because the sun appears as a disk and not a point, part of the midnight sun may be seen on the night of the northern summer solstice up to about 50 minutes (′) (90 km) south of the Arctic Circle; similarly, on the day of the northern winter solstice, part of the sun may be seen up to about 50′ north of the Arctic Circle. That is true at sea level; those limits increase with elevation above sea level, although in mountainous regions there is often no direct view of the true horizon.
+
+Human habitation
+
+Relatively few people live north of the Arctic Circle due to the severe climate; nonetheless, some areas have been settled for thousands of years by indigenous peoples. Tens of thousands of years ago, waves of people migrated from eastern Siberia across the Bering Strait into North America and gradually eastward to settle. Much later, in the historic period, there has been migration into some Arctic areas by Europeans and other immigrants.
+
+The largest communities north of the Arctic Circle are situated in Russia and Norway: Murmansk (population 307,257), Norilsk (175,365), Tromsø (71,295) and Vorkuta (70,548). Rovaniemi (61,329) in Finland is the largest settlement in the immediate vicinity of the Arctic Circle lying slightly south of the line.
+
+In contrast, the largest North American community north of the Arctic Circle, Sisimiut (Greenland), has approximately 5,000 inhabitants. Of the Canadian and United States Arctic communities, Barrow, Alaska is the largest settlement with about 4,000 inhabitants.
+
+Geography
+
+The Arctic Circle is roughly  long.  (A different source says . ) The area north of the Circle is about  and covers roughly 4% of Earth's surface. 
+
+The Arctic Circle passes through the Arctic Ocean, the Scandinavian Peninsula, North Asia, Northern America and Greenland. The land within the Arctic Circle is divided among eight countries: Norway, Sweden, Finland, Russia, the United States (Alaska), Canada, Denmark (Greenland), and Iceland (where it passes through the small offshore island of Grímsey).
+
+Climate
+
+The climate inside the Arctic Circle is generally cold, but the coastal areas of Norway have a generally mild climate as a result of the Gulf Stream, which makes the ports of northern Norway and northwest Russia ice-free all year long. In the interior, summers can be quite warm, while winters are extremely cold. For example, summer temperatures in Norilsk (Russia) will sometimes reach as high as 30 C, while the winter temperatures frequently fall below .
+
+Sites along the Arctic Circle
+
+Starting at the prime meridian and heading eastwards, the Arctic Circle passes through:
+Question:
+Which is the largest city within the Arctic Circle?
+Answer:
+Murmansk
+Passage:
+What a Country!
+What a Country! is an American sitcom that aired in syndication from September 27, 1986 to May 23, 1987. It was based on the 1977-1979 British sitcom Mind Your Language. The series was intended as somewhat of a showcase for Yakov Smirnoff, whose catchphrase provided the show's title.
+
+Synopsis
+
+What a Country! is set in a class of recent immigrants to the United States who are trying to pass the citizenship test. Their teacher, Taylor Brown (played by Garrett M. Brown) is an American English language teacher, while the students include Nikolai (a Russian taxi driver), Laszlo (a retired Hungarian doctor), Ali (a Pakistani), Robert (the son of a deposed African king), Maria (a housekeeper working for a rich Beverly Hills family), Victor (a Hispanic in love with Maria), Yung Hee (a shy Japanese woman) and Sheikh El Hamid (an Arabian sheikh). Gail Strickland initially played the character of Principal Joan Courtney, though she was replaced by Don Knotts during the series' run. 
+
+The series aired a total of 26 episodes before being canceled.
+
+Cast
+
+* Garrett M. Brown as Taylor Brown
+* Yakov Smirnoff as Nikolai Rostopovich
+* George Murdock as Laszlo Gabo
+* Vijay Amritraj as Ali Nadim
+* Harry Waters, Jr. as Robert Muboto
+* Ada Maris as Maria Conchita Lopez
+* Julian Reyes as Victor Ortega
+* Leila Hee Olsen as Yung Hi
+* Gail Strickland as Principal Joan Courtney (Episodes 1-10)
+* Don Knotts as Principal F.J. "Bud" McPherson (Episodes 11-26)
+
+Episodes
+Question:
+What country is projected to become the world's largest oil producer in the year 2014?
+Answer:
+The United States of America
+Passage:
+Nordic | Define Nordic at Dictionary.com
+Nordic | Define Nordic at Dictionary.com
+Nordic
+adjective
+1.
+of, relating to, or characteristic of a Germanic people of northern European origin, exemplified by the Scandinavians.
+2.
+having or suggesting the physical characteristics associated with these people, typically tall stature, blond hair, blue eyes, and elongated head.
+3.
+(sometimes lowercase) of or relating to skiing events involving ski jumping and cross-country skiing.
+Compare alpine (def 5).
+a member of the Nordic people, especially a Scandinavian.
+Origin of Nordic
+1895-1900; < French nordique, equivalent to nord north + -ique -ic
+Related forms
+[nawr-dis-i-tee] /nɔrˈdɪs ɪ ti/ (Show IPA), noun
+anti-Nordic, adjective
+Examples from the Web for Nordic
+Expand
+Contemporary Examples
+One of the best pavilions, which got a lot of buzz, is the Danish and Nordic Pavilion.
+‘Forbrydelsen,’ ‘Borgen,’ ‘The Bridge’: The Rise of Nordic Noir TV Jace Lacob June 19, 2012
+Historical Examples
+Even in eastern Turkestan there are still strong evidences of Nordic blood in the physiognomy of the people.
+The Hyborian Age Robert E. Howard
+Attila and his Huns were the first to break through into Nordic lands as far as the plains of northern France.
+British Dictionary definitions for Nordic
+Expand
+(skiing) of or relating to competitions in cross-country racing and ski-jumping Compare alpine (sense 4)
+2.
+(of recreational walking) incorporating the use of poles that resemble ski poles to aid movement
+Nordic
+adjective
+1.
+of, relating to, or belonging to a subdivision of the Caucasoid race typified by the tall blond blue-eyed long-headed inhabitants of N Britain, Scandinavia, N Germany, and the Netherlands
+Word Origin
+C19: from French nordique, from nordnorth
+Collins English Dictionary - Complete & Unabridged 2012 Digital Edition
+© William Collins Sons & Co. Ltd. 1979, 1986 © HarperCollins
+Publishers 1998, 2000, 2003, 2005, 2006, 2007, 2009, 2012
+Word Origin and History for Nordic
+Expand
+adj.
+1898, from French nordique (in J. Deniker's system of race classifications), literally "of or pertaining to the north," from nord "north" (a loan-word from Old English; see north ). Perhaps influenced by German Nordisch. As a noun, from 1901. Strictly, the blond peoples who inhabit Scandinavia and the north of Britain. As a type of skiing competition, it is attested from 1954.
+Online Etymology Dictionary, © 2010 Douglas Harper
+Question:
+"The term ""Nordic"" means relating to what area?"
+Answer:
+Scandinavian culture
+Passage:
+Shirley Conran
+Shirley Conran (born 21 September 1932) is a British novelist and journalist. 
+
+Life and writings
+
+Conran is a best-selling author, whose books include Lace and Superwoman.   She has been a columnist for Vanity Fair, women's editor of The Daily Mail and a feature writer for The Observer.
+
+Lace spent 13 weeks on the New York Times Best Seller list,  reaching as high as No. 6,  and was adapted into a 1980s US miniseries.
+
+Conran was educated at the University of Portsmouth. She was successfully treated for skin cancer and has suffered from ME.  She is the ex-wife of British designer, restaurateur, retailer and writer Sir Terence Conran and mother to Sebastian Conran and Jasper Conran, both of whom are designers. Her two later husbands included Kevin O'Sullivan, now the husband of Victoria Glendinning.  Conran has homes in France and London, and lived in Monaco for several years. 
+
+She is known for coining the phrases "Life is too short to stuff a mushroom"  and "First things first, second things never".
+
+;Founder of Maths Action
+An independent, not for profit organisation with no political affiliations, Maths Action aims to improve maths performance in Britain. 
+
+Works
+
+Fiction
+
+*Lace (Simon & Schuster, 1982) 
+*Lace 2 (1985)
+*The Complete Story (omnibus, 1986)
+*Savages (1987, movie rights owned by Warner Brothers but never made)
+*Crimson (1992)
+*Tiger Eyes (1994)
+*The Revenge (aka Revenge of Mimi Quinn, 1998)
+*The Amazing Umbrella Shop (1990)
+
+Non-fiction
+
+*Superwoman (1975)
+*Superwoman 2 (1977)
+*Futurewoman: How to Survive Life After Thirty (1979)
+*Superwoman in Action (1979)
+*The Magic Garden (1983)
+*Down with Superwoman: For Everyone Who Hates Housework (1990)
+*Money Stuff (2014) 
+
+Other
+
+*The Magic Garden was adapted as a computer program and published by Acornsoft for the BBC Micro as Shirley Conran's Magic Garden.
+Question:
+Which author is the ex-wife of British designer, restaurateur, retailer and writer Sir Terence and the mother of designers Sebastian and Jasper?
+Answer:
+Shirley Conran
+Passage:
+Top 10 Largest Banks in the World 2015 by Market ...
+Top 10 Largest Banks in the World 2015 by Market Capitalization
+Financial List / August 17, 2014
+2) JP Morgan Chase & Co ($229.90 billion)
+This American multinational banking and financial services holding company has assets worth around $2.515. The company came into existence when Chase Manhattan Corporation merged with J P Morgan & Co. It is considered to be a universal bank. It is one of the big four banks of the US.
+1) Wells Fargo & Co ($261.72 billion)
+Wells Fargo & Co is the largest bank in the world by market capitalization. Headquartered in San Francisco, California, this bank is the fourth largest bank in the US by assets. It is the second largest bank in deposits, debit cards and home mortgage servicing. In 2007, it was the only bank in the US to be rated AAA by S&P, though its rating has since been lowered to AA- in light of the financial crisis of 2007-12.
+The above-mentioned banks are huge brands and are serving millions worldwide.
+Question:
+By assets and market capitalization, what is the largest bank in the US?
+Answer:
+MorganChase
+
+
+Passage:
+Visit Grand Coulee Dam| Bureau of Reclamation
+Visit Grand Coulee Dam| Bureau of Reclamation
+Contact Us
+Visit the Dam
+Explore the dam, take part in the D3 Geocache Challenge, view the Laser Light Show, and come inside the Visitor Center to experience the hands-on exhibits!
+The visitor center is open daily (except Thanksgiving Day, December 25, and January 1) from 9:00 a.m. to 5:00 p.m, with extended hours between Memorial Day and September 30. During the summer season the visitor center is open until the laser light show, One River, Many Voices, ends. Show times vary, learn more >>
+Question:
+In which country is the Grand Coulee Dam
+Answer:
+
+############################################
+1 prompt:
+Answer the question based on the given passage. Only give me the answer and do not output any other words. The following are some examples.
+
+Passage:
+Adam's apple
+The laryngeal prominence (commonly referred to as Adam's apple), a feature of the human neck, is the lump or protrusion that is formed by the angle of the thyroid cartilage surrounding the larynx.
+
+Structure
+
+The structure of the laryngeal prominence forms a bump under the skin. It is larger in adult men, in whom it is usually clearly visible and palpable. In women, the bump is much less visible and is hardly perceived on the upper edge of the thyroid cartilage. 
+
+The meeting point of the two portions of the cartilage generally forms an acute angle (of about 90°) in men, while in women it forms an open arc (of about 120°).
+
+Sex difference
+
+Although both sexes have it, the Adam's apple is considered to be a characteristic feature of adult men, because its size tends to increase considerably during puberty. 
+
+Its development is considered a secondary sexual characteristic of males that appears as a result of hormonal activity. Its level of development varies among individuals and the widening of that area in the larynx can occur very suddenly and quickly.
+
+The laryngeal prominence is more prominent in adult males than in females because of the difference in the size of the angle: 90° in males and 120° in females.
+
+Function 
+
+The Adam's apple, in conjunction with the thyroid cartilage which forms it, helps to protect the walls and the frontal part of the larynx, including the vocal cords (which are located directly behind it). It is found in both women and men.
+
+Another function of the laryngeal prominence is related to the deepening of the voice. During adolescence, the thyroid cartilage grows together with the larynx. Consequently, the laryngeal prominence grows in size mainly in men. Together, a larger soundboard is made up in phonation apparatus and, as a result, the man gets a deeper voice note.  
+
+Society and culture
+
+Cosmetic surgery to reduce the s program and published by Acornsoft for the BBC Micro as Shirley Conran's Magic Garden.
+Question:
+Which author is the ex-wife of British designer, restaurateur, retailer and writer Sir Terence and the mother of designers Sebastian and Jasper?
+Answer:
+Shirley Conran
+Passage:
+Top 10 Largest Banks in the World 2015 by Market ...
+Top 10 Largest Banks in the World 2015 by Market Capitalization
+Financial List / August 17, 2014
+2) JP Morgan Chase & Co ($229.90 billion)
+This American multinational banking and financial services holding company has assets worth around $2.515. The company came into existence when Chase Manhattan Corporation merged with J P Morgan & Co. It is considered to be a universal bank. It is one of the big four banks of the US.
+1) Wells Fargo & Co ($261.72 billion)
+Wells Fargo & Co is the largest bank in the world by market capitalization. Headquartered in San Francisco, California, this bank is the fourth largest bank in the US by assets. It is the second largest bank in deposits, debit cards and home mortgage servicing. In 2007, it was the only bank in the US to be rated AAA by S&P, though its rating has since been lowered to AA- in light of the financial crisis of 2007-12.
+The above-mentioned banks are huge brands and are serving millions worldwide.
+Question:
+By assets and market capitalization, what is the largest bank in the US?
+Answer:
+MorganChase
+
+
+Passage:
+Visit Grand Coulee Dam| Bureau of Reclamation
+Visit Grand Coulee Dam| Bureau of Reclamation
+Contact Us
+Visit the Dam
+Explore the dam, take part in the D3 Geocache Challenge, view the Laser Light Show, and come inside the Visitor Center to experience the hands-on exhibits!
+The visitor center is open daily (except Thanksgiving Day, December 25, and January 1) from 9:00 a.m. to 5:00 p.m, with extended hours between Memorial Day and September 30. During the summer season the visitor center is open until the laser light show, One River, Many Voices, ends. Show times vary, learn more >>
+Question:
+In which country is the Grand Coulee Dam
+Answer:
+##############################

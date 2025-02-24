@@ -134,7 +134,7 @@ class ALLKVCluster():
             value_states = restore_kv(value_states, num_key_value_groups)
         return key_states, value_states
     
-    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 4096 + 64, window_size = 64, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None, attention_mask = None):
+    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 1024 + 32, window_size = 32, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
         
         # check if prefix phase
         assert key_states.shape[-2] == query_states.shape[-2]
@@ -293,12 +293,12 @@ class ALLKVCluster():
         
         bsz, num_heads, head_dim, quant_k_len = key_states_quant_trans.shape if key_states_quant_trans is not None else 0, 0, 0, 0
         full_k_len = key_states_full.shape[-1] if key_states_full is not None else 0
-        
+        tot_len = quant_k_len * feat_per_int + full_k_len
         if(self.max_capacity_prompt % group_size != 0):
             self.max_capacity_prompt = (self.max_capacity_prompt // group_size + 1) * group_size
         
         # print(f"seq_len = {quant_k_len * feat_per_int + full_k_len}")
-        if(self.max_capacity_prompt + decoding_window_size > quant_k_len * feat_per_int + full_k_len):
+        if(self.max_capacity_prompt + decoding_window_size > tot_len):
             return past_key_value
         
         b1 = decoding_window_size - window_size

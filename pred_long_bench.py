@@ -47,8 +47,13 @@ def post_process(response, model_name):
 
 def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset, device, model_name):
     preds = []
+    # f = open("out.txt", "w")
+    # i = 0
     for json_obj in tqdm(data):
         prompt = prompt_format.format(**json_obj)
+        # i += 1
+        # f.write("##############################\n")
+        # f.write(f"{i} prompt:\n{prompt}\n")
         # truncate to fit max_length (we suggest truncate in the middle, since the left and right side may contain crucial instructions)
         tokenized_prompt = tokenizer(prompt, truncation=False, return_tensors="pt").input_ids[0]
         # if "chatglm3" in model:
@@ -56,8 +61,12 @@ def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset
         if len(tokenized_prompt) > max_length:
             half = int(max_length/2)
             prompt = tokenizer.decode(tokenized_prompt[:half], skip_special_tokens=True)+tokenizer.decode(tokenized_prompt[-half:], skip_special_tokens=True)
+        # if(len(prompt) > max_length):
+        #     half = int(max_length / 2)
+        #     prompt = prompt[:half] + prompt[-half:]
         if dataset not in ["trec", "triviaqa", "samsum", "lsht", "lcc", "repobench-p"]: # chat models are better off without build prompts on these tasks
             prompt = build_chat(tokenizer, prompt, model_name)
+        # f.write(f"############################################\n{i} prompt:\n{prompt}")
         input = tokenizer(prompt, truncation=False, return_tensors="pt").to(device)
         context_length = input.input_ids.shape[-1]
         if dataset == "samsum": # prevent illegal output on samsum (model endlessly repeat "\nDialogue"), might be a prompting issue
@@ -128,7 +137,7 @@ if __name__ == '__main__':
             config.v_bits = model_args.v_bits
             config.group_size = model_args.group_size
             config.residual_length = model_args.residual_length
-            config.use_flash = False # Note: We activate the flashattention to speed up the inference
+            config.use_flash = True # Note: We activate the flashattention to speed up the inference
             print("used llamaForCausalLM_KIVI")
             model = LlamaForCausalLM_KIVI.from_pretrained(
                 pretrained_model_name_or_path=model_args.model_name_or_path,
@@ -192,7 +201,7 @@ if __name__ == '__main__':
         datasets = ["qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "gov_report", "multi_news", 
                     "trec", "triviaqa", "samsum", "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     else:
-        datasets = ["triviaqa"]
+        datasets = ["multi_news"]
         # datasets = ["triviaqa", "qasper", "trec", "samsum", "lcc", "repobench-p", "qmsum", "multi_news"]
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
     dataset2prompt = json.load(open("config/dataset2prompt.json", "r"))

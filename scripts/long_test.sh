@@ -4,7 +4,7 @@ gpuid=0
 k_bits=2
 v_bits=2
 group_size=32
-residual_length=128
+residual_length=64
 model=meta-llama/Llama-3.2-1B-Instruct
 e=0
 

@@ -12,7 +12,7 @@
     "multi_news": 512,
     "vcsum": 512,
     "trec": 64,
-    "triviaqa": 32,
+    "triviaqa": 4096,
     "samsum": 128,
     "lsht": 64,
     "passage_count": 32,

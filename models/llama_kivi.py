@@ -12,7 +12,8 @@ from quant.matmul import cuda_bmm_fA_qB_outer, triton_bmm_fA_qB_outer
 from transformers.models.llama.configuration_llama import *
 from transformers.models.llama.modeling_llama import *
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
-
+import os
+# os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
 
 from flash_attn.bert_padding import index_first_axis, pad_input, unpad_input  # noqa
@@ -370,7 +371,8 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             value_scale = past_key_value[6]
             value_mn = past_key_value[7]
             key_mx_trans = past_key_value[8]
-            
+            # print(key_states_quant_trans.shape, key_states_full.shape)
+            # print(value_states_quant.shape, value_states_full.shape)
             if key_states_quant_trans is not None:
                 # print(key_states_quant_trans.shape, query_states.shape)
                 att_qkquant = cuda_bmm_fA_qB_outer(self.group_size, query_states, key_states_quant_trans, 
@@ -394,7 +396,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
 
             if key_states_full.shape[-2] == self.residual_length:
                 assert self.residual_length % self.group_size == 0
-                key_states_quant_trans_new, key_scale_trans_new, key_mn_trans_new,  key_mx_trans_new, *_= triton_quantize_and_pack_along_last_dim(key_states_full.transpose(2, 3).contiguous(), 
+                key_states_quant_trans_new, key_scale_trans_new, key_mn_trans_new, key_mx_trans_new = triton_quantize_and_pack_along_last_dim(key_states_full.transpose(2, 3).contiguous(), 
                                                                                                                             self.group_size, 
                                                                                                                             self.k_bits)
                 key_states_full = None
@@ -434,7 +436,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             attn_output = attn_output.transpose(1, 2).contiguous()
             if value_full_length > self.residual_length:
                 assert value_full_length == self.residual_length + 1
-                value_states_quant_new, scale, mn, *_ = triton_quantize_and_pack_along_last_dim(value_states_full[:, :, :1, :].contiguous(), 
+                value_states_quant_new, scale, mn, mx = triton_quantize_and_pack_along_last_dim(value_states_full[:, :, :1, :].contiguous(), 
                                                                                                 self.group_size, 
                                                                                                 self.v_bits)
                 value_states_full = value_states_full[:, :, 1:, :].contiguous()
@@ -446,7 +448,17 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
                     value_states_quant = value_states_quant_new
                     value_scale = scale
                     value_mn = mn
-            
+            # past_key_value = (key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, kv_seq_len) if use_cache else None        
+            # past_key_value = self.kv_cluster.update_quant_kv_in_decoding(query_states, past_key_value, self.group_size, self.k_bits)
+            # key_states_quant_trans = past_key_value[0]
+            # key_states_full = past_key_value[1]
+            # key_scale_trans = past_key_value[2]
+            # key_mn_trans = past_key_value[3]
+            # value_states_quant = past_key_value[4]
+            # value_states_full = past_key_value[5]
+            # value_scale = past_key_value[6]
+            # value_mn = past_key_value[7]
+            # key_mx_trans = past_key_value[8]
         else:
             # print(f"kivi with flash! {self.k_bits}")
             key_states_compress, value_states_compress = self.kv_cluster.update_kv_snap(key_states, query_states, value_states)
@@ -485,7 +497,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
                 key_states_quant = key_states
                 key_states_full = None
             if key_states_quant is not None:
-                key_states_quant_trans, key_scale_trans, key_mn_trans, key_mx_trans, *_ = triton_quantize_and_pack_along_last_dim(key_states_quant.transpose(2, 3).contiguous(), self.group_size, self.k_bits)
+                key_states_quant_trans, key_scale_trans, key_mn_trans, key_mx_trans = triton_quantize_and_pack_along_last_dim(key_states_quant.transpose(2, 3).contiguous(), self.group_size, self.k_bits)
             else:
                 key_states_quant_trans = None
                 key_scale_trans = None
@@ -500,7 +512,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
             else:
                 value_states_quant = value_states[:, :, :-self.residual_length, :].contiguous()
                 value_states_full = value_states[:, :, -self.residual_length:, :].contiguous()
-                value_states_quant, value_scale, value_mn, *_ = triton_quantize_and_pack_along_last_dim(value_states_quant, 
+                value_states_quant, value_scale, value_mn, value_mx = triton_quantize_and_pack_along_last_dim(value_states_quant, 
                                                                                                 self.group_size, 
                                                                                                 self.v_bits)
 

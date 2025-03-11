@@ -47,26 +47,16 @@ def post_process(response, model_name):
 
 def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset, device, model_name):
     preds = []
-    # f = open("out.txt", "w")
-    # i = 0
+    data = data.select(range(10))
     for json_obj in tqdm(data):
+        # print(type(json_obj))
         prompt = prompt_format.format(**json_obj)
-        # i += 1
-        # f.write("##############################\n")
-        # f.write(f"{i} prompt:\n{prompt}\n")
-        # truncate to fit max_length (we suggest truncate in the middle, since the left and right side may contain crucial instructions)
         tokenized_prompt = tokenizer(prompt, truncation=False, return_tensors="pt").input_ids[0]
-        # if "chatglm3" in model:
-        #     tokenized_prompt = tokenizer(prompt, truncation=False, return_tensors="pt", add_special_tokens=False).input_ids[0]
         if len(tokenized_prompt) > max_length:
             half = int(max_length/2)
             prompt = tokenizer.decode(tokenized_prompt[:half], skip_special_tokens=True)+tokenizer.decode(tokenized_prompt[-half:], skip_special_tokens=True)
-        # if(len(prompt) > max_length):
-        #     half = int(max_length / 2)
-        #     prompt = prompt[:half] + prompt[-half:]
         if dataset not in ["trec", "triviaqa", "samsum", "lsht", "lcc", "repobench-p"]: # chat models are better off without build prompts on these tasks
             prompt = build_chat(tokenizer, prompt, model_name)
-        # f.write(f"############################################\n{i} prompt:\n{prompt}")
         input = tokenizer(prompt, truncation=False, return_tensors="pt").to(device)
         context_length = input.input_ids.shape[-1]
         if dataset == "samsum": # prevent illegal output on samsum (model endlessly repeat "\nDialogue"), might be a prompting issue
@@ -91,6 +81,78 @@ def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset
         pred = post_process(pred, model_name)
         preds.append({"pred": pred, "answers": json_obj["answers"], "all_classes": json_obj["all_classes"], "length": json_obj["length"]})
     return preds
+
+
+def get_pred_batch(model, tokenizer, data, max_length, max_gen, prompt_format, dataset, device, model_name, batch_size=2):
+    preds = []
+    # 针对samsum任务的特殊性，可能需要逐条处理
+    if dataset == "samsum":
+        for json_obj in tqdm(data):
+            prompt = prompt_format.format(**json_obj)
+            tokenized_prompt = tokenizer(prompt, truncation=False, return_tensors="pt").input_ids[0]
+            if len(tokenized_prompt) > max_length:
+                half = int(max_length / 2)
+                prompt = (tokenizer.decode(tokenized_prompt[:half], skip_special_tokens=True) +
+                          tokenizer.decode(tokenized_prompt[-half:], skip_special_tokens=True))
+            inputs = tokenizer(prompt, truncation=False, return_tensors="pt").to(device)
+            context_length = inputs.input_ids.shape[-1]
+            output = model.generate(
+                **inputs,
+                max_new_tokens=max_gen,
+                num_beams=1,
+                do_sample=False,
+                temperature=1.0,
+                min_length=context_length + 1,
+                eos_token_id=[tokenizer.eos_token_id, tokenizer.encode("\n", add_special_tokens=False)[-1]],
+            )[0]
+            pred = tokenizer.decode(output[context_length:], skip_special_tokens=True)
+            pred = post_process(pred, model_name)
+            preds.append({
+                "pred": pred,
+                "answers": json_obj["answers"],
+                "all_classes": json_obj["all_classes"],
+                "length": json_obj["length"]
+            })
+    else:
+        # 针对其他任务，使用批量处理
+        # print(type(data))
+        tokenizer.pad_token = tokenizer.eos_token
+        for i in tqdm(range(0, len(data), batch_size)):
+            batch = data.select(range(i, i + batch_size))
+            prompts = []
+            for json_obj in batch:
+                prompt = prompt_format.format(**json_obj)
+                tokenized_prompt = tokenizer(prompt, truncation=False, return_tensors="pt").input_ids[0]
+                if len(tokenized_prompt) > max_length:
+                    half = int(max_length / 2)
+                    prompt = (tokenizer.decode(tokenized_prompt[:half], skip_special_tokens=True) +
+                              tokenizer.decode(tokenized_prompt[-half:], skip_special_tokens=True))
+                if dataset not in ["trec", "triviaqa", "samsum", "lsht", "lcc", "repobench-p"]:
+                    prompt = build_chat(tokenizer, prompt, model_name)
+                prompts.append(prompt)
+            # 批量tokenize，注意设置padding确保各样本对齐
+            inputs = tokenizer(prompts, truncation=False, padding=True, return_tensors="pt").to(device)
+            # 获取每个样本的实际长度（非padding部分）
+            context_lengths = inputs.attention_mask.sum(dim=1).tolist()
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=max_gen,
+                num_beams=1,
+                do_sample=False,
+                temperature=1.0,
+            )
+            # 对每个样本，从对应的 context_length 处开始解码
+            for j, output in enumerate(outputs):
+                pred = tokenizer.decode(output[context_lengths[j]:], skip_special_tokens=True)
+                pred = post_process(pred, model_name)
+                preds.append({
+                    "pred": pred,
+                    "answers": batch[j]["answers"],
+                    "all_classes": batch[j]["all_classes"],
+                    "length": batch[j]["length"]
+                })
+    return preds
+
 
 def seed_everything(seed):
     torch.manual_seed(seed)

@@ -273,18 +273,8 @@ class ALLKVCluster():
             raise ValueError('Decoding metric not supported')
         
 
-    def update_quant_kv_in_decoding(self, query_states, past_key_value, group_size, bits) -> torch.Tensor: 
+    def update_quant_kv_in_decoding(self, query_states, key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, group_size = 32, bits = 2, max_prompt_size = 4096): 
         
-        key_states_quant_trans = past_key_value[0]
-        key_states_full = past_key_value[1]
-        key_scale_trans = past_key_value[2]
-        key_mn_trans = past_key_value[3]
-        value_states_quant = past_key_value[4]
-        value_states_full = past_key_value[5]
-        value_scale = past_key_value[6]
-        value_mn = past_key_value[7]
-        key_mx_trans = past_key_value[8]
-        kv_seq_len = past_key_value[9]
         # print("---", key_states_quant_trans.shape, key_states_full.shape)
         decoding_window_size = self.decoding_window_size # b1 + b2
         window_size = self.decoding_recent_size   # b2
@@ -297,17 +287,22 @@ class ALLKVCluster():
         else:
             bsz, num_heads, head_dim_k, quant_k_len = 0, 0, 0, 0
         head_dim_v = value_states_quant.shape[-1] if value_states_quant is not None else 0
-        full_v_len = value_states_full.shape[-1] if value_states_full is not None else 0
+        full_v_len = value_states_full.shape[-2] if value_states_full is not None else 0
         full_k_len = key_states_full.shape[-2] if key_states_full is not None else 0
         tot_len = quant_k_len * feat_per_int + full_k_len
         num = group_size // feat_per_int
-        if(self.max_capacity_prompt % group_size != 0):
+        if self.max_capacity_prompt % group_size != 0:
             self.max_capacity_prompt = (self.max_capacity_prompt // group_size + 1) * group_size
-        if(self.max_capacity_prompt + decoding_window_size >= tot_len):
-            return past_key_value
+        if self.max_capacity_prompt + decoding_window_size >= tot_len:
+            return key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans
         # print(f"full_kv_len = {full_k_len}, quant_kv_len = {quant_k_len}, seq_len = {tot_len}, max_capcity_prompt = {self.max_capacity_prompt}, max = {self.max_capacity_prompt + decoding_window_size}")
         
+
+        # if tot_len <= window_size:
+        #     return key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans
+
         b1 = decoding_window_size - window_size
+        # b1 = (tot_len - window_size) // (max_prompt_size - window_size) * b1
         b2_k = window_size - full_k_len 
         b2_v = window_size - full_v_len
         
@@ -315,15 +310,17 @@ class ALLKVCluster():
         b1 = (b1 // group_size + 1) * group_size if b1 % group_size != 0 else b1
         b2_k = (b2_k // group_size + 1) * group_size if b2_k % group_size != 0 else b2_k
         b2_v = (b2_v // group_size + 1) * group_size if b2_v % group_size != 0 else b2_v
-        if(self.max_capacity_prompt + b1 + b2_k + full_k_len >= tot_len):
-            return past_key_value
-        if(self.max_capacity_prompt + b1 + b2_v + full_v_len >= tot_len):
-            return past_key_value
+        if self.max_capacity_prompt + b1 + b2_k + full_k_len >= tot_len:
+            return key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans
+        if self.max_capacity_prompt + b1 + b2_v + full_v_len >= tot_len:
+            return key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans
         # print(b1, b2_k)
         
-        assert b2_k >= 0
+        assert b2_k > 0
+        # assert b2_v > 0
         # print("need to throw some cache")    
         
+        # print(f"full_kv_len = {full_k_len}, quant_kv_len = {quant_k_len}, seq_len = {tot_len}, max_capcity_prompt = {self.max_capacity_prompt}, max = {self.max_capacity_prompt + decoding_window_size}")
         # print(key_states_quant_trans.shape, key_states_full.shape if key_states_full is not None else "None", key_scale_trans.shape, key_mx_trans.shape, key_mn_trans.shape)
         # print(value_states_quant.shape, value_states_full.shape, value_scale.shape, value_mn.shape)
         # prefill cache
@@ -338,7 +335,7 @@ class ALLKVCluster():
         prefill_indices_mx_k = prefill_indices_mx_k.unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(bsz, num_heads, head_dim_k, 1)
         prefill_indices_mx_v = torch.arange(self.max_capacity_prompt, dtype=torch.int32, device=value_mn.device)
         prefill_indices_mx_v = prefill_indices_mx_v.unsqueeze(0).unsqueeze(0).unsqueeze(-1).repeat(bsz, num_heads, 1, head_dim_v // num)       
-        
+        # print(prefill_indices_mx_v.shape, value_scale.shape, b2_v) #torch.Size([1, 32, 1056, 2]) torch.Size([1, 32, 1536, 2]) 64
 
         
         # b2 % group_size == 0  and self.max_capacity_prompt % group_size == 0 ==>> (tot - b2 - max) % group_size == 0
@@ -354,10 +351,12 @@ class ALLKVCluster():
         #[1, 5, 8] ==>> [1, 2, 10, 11, 16, 17]
         # print(b1, b1_indices_mx_k.shape, b1_indices_quant_k.shape)
         
-        b1_indices_quant_k += self.max_capacity_prompt // feat_per_int
+        # b1_indices_quant_k += self.max_capacity_prompt // feat_per_int
         # b1_indices_quant_k.to('cpu')
 
         b1_indices_quant_v = get_repeat_tensor(b1_indices_mx_k, group_size)
+        b1_indices_quant_k += self.max_capacity_prompt // feat_per_int
+        b1_indices_quant_v += self.max_capacity_prompt
         b1_indices_quant_k = b1_indices_quant_k.unsqueeze(-2).expand(-1, -1, head_dim_k, -1)
         b1_indices_quant_v = b1_indices_quant_v.unsqueeze(-1).expand(-1, -1, -1, head_dim_v)
         # print(b1_indices_quant_k.shape, prefill_indices_quant_k.shape)
@@ -368,7 +367,8 @@ class ALLKVCluster():
         # print(indices_quant_k.shape, indices_quant_v.shape, key_states_quant_trans[..., : -b2_k // feat_per_int].shape)
         key_states_quant_trans_compress = key_states_quant_trans[..., : -b2_k // feat_per_int].gather(dim = 3, index = indices_quant_k)
         # print(key_states_quant_trans_compress.shape)
-        # print(b2_v, value_states_quant[..., : -b2_v, :].shape)
+        # print(b1, b2_v, full_v_len, value_states_quant[..., : -b2_v, :].shape) # 192 torch.Size([1, 32, 1344, 4])
+        # print(indices_quant_v)
         value_states_quant_compress = value_states_quant[..., : -b2_v, :].gather(dim = 2, index = indices_quant_v)
         # print(value_states_quant_compress.shape)
         k_states_quant_trans_cur = key_states_quant_trans[..., -b2_k // feat_per_int:]
@@ -377,19 +377,22 @@ class ALLKVCluster():
         key_states_quant_trans = torch.cat([key_states_quant_trans_compress, k_states_quant_trans_cur], dim = 3)
         value_states_quant = torch.cat([value_states_quant_compress, v_states_quant_cur], dim=2)
         
-        b1_indices_mx_k += self.max_capacity_prompt // group_size
+        # b1_indices_mx_k += self.max_capacity_prompt // group_size
         b1_indices_mx_v = get_repeat_tensor(b1_indices_mx_k, group_size)
+        b1_indices_mx_k += self.max_capacity_prompt // group_size
+        b1_indices_mx_v += self.max_capacity_prompt
         b1_indices_mx_k = b1_indices_mx_k.unsqueeze(-2).expand(-1, -1, head_dim_k, -1)
         b1_indices_mx_v = b1_indices_mx_v.unsqueeze(-1).expand(-1, -1, -1, head_dim_v // num)
         indices_mx_k = torch.cat([prefill_indices_mx_k, b1_indices_mx_k], dim = 3)
         indices_mx_v = torch.cat([prefill_indices_mx_v, b1_indices_mx_v], dim = 2)
-        # print(indices_mx_k.shape, indices_mx_v.shape)
+        # print(indices_mx_k.shape, indices_mx_v.shape) # torch.Size([1, 32, 64, 45]) torch.Size([1, 32, 1440, 2])
         
         key_mx_trans_compress = key_mx_trans[..., : -b2_k // group_size].gather(dim = 3, index = indices_mx_k)
         key_mn_trans_compress = key_mn_trans[..., : -b2_k // group_size].gather(dim = 3, index = indices_mx_k)
         key_scale_trans_compress = key_scale_trans[..., : -b2_k // group_size].gather(dim = 3, index = indices_mx_k)
-        # print(head_dim_v, value_mn.shape)
+        # print(head_dim_v, value_scale.shape, indices_mx_v) #4 torch.Size([1, 32, 1536, 2]) torch.Size([1, 32, 1440, 2])
         value_scale_compress = value_scale[..., :-b2_v, :].gather(dim = 2, index = indices_mx_v)
+        # print("_____")
         value_mn_compress = value_mn[..., :-b2_v, :].gather(dim = 2, index = indices_mx_v)
         k_mx_trans_cur = key_mx_trans[..., -b2_k // group_size:]
         k_mn_trans_cur = key_mn_trans[..., -b2_k // group_size:]
@@ -401,12 +404,7 @@ class ALLKVCluster():
         key_scale_trans = torch.cat([key_scale_trans_compress, k_scale_trans_cur], dim=3)
         value_scale = torch.cat([value_scale_compress, v_scale_cur], dim=2)
         value_mn = torch.cat([value_mn_compress, v_mn_cur], dim=2)
-        past_key_value = (key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, kv_seq_len)
-        # print(key_states_quant_trans.shape, key_states_full.shape if key_states_full is not None else "None", key_scale_trans.shape, key_mx_trans.shape, key_mn_trans.shape)
-        # print(value_states_quant.shape, value_states_full.shape, value_scale.shape, value_mn.shape)
-        # print("##############################################################################")
-        return past_key_value
-        
+        return key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans
         
 
     
@@ -417,11 +415,11 @@ def init_ALLKV(self):
         if not hasattr(self.config, 'decoding_window_size'):
             self.config.decoding_window_size = 512
         if not hasattr(self.config, 'decoding_recent_size'):
-            self.config.decoding_recent_size = 128
+            self.config.decoding_recent_size = 256
         if not hasattr(self.config, 'prefill_windown_size'):
-            self.config.prefill_window_size = 2048
+            self.config.prefill_window_size = 1024
         if not hasattr(self.config, 'prefill_recent_size'):
-            self.config.prefill_recent_size = 8  # 8
+            self.config.prefill_recent_size = 2  # 8
     
     
     self.kv_cluster = ALLKVCluster(

@@ -134,13 +134,15 @@ class ALLKVCluster():
             value_states = restore_kv(value_states, num_key_value_groups)
         return key_states, value_states
     
-    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 1024 + 32, window_size = 32, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
+    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 512 + 8, window_size = 8, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
         
         # check if prefix phase
         assert key_states.shape[-2] == query_states.shape[-2]
         bsz, num_heads, q_len, head_dim = query_states.shape
         
+        # print(q_len, max_capacity_prompt)
         if q_len < max_capacity_prompt:
+            ALLKVCluster.max_capacity_prompt = key_states.shape[-2]
             return key_states, value_states
         else:
             attn_weights = torch.matmul(query_states[..., -window_size:, :], key_states.transpose(2, 3)) / math.sqrt(head_dim)
@@ -413,13 +415,13 @@ def init_ALLKV(self):
         if not hasattr(self.config, 'decoding_metric'):
             self.config.decoding_metric = 'None'
         if not hasattr(self.config, 'decoding_window_size'):
-            self.config.decoding_window_size = 512
+            self.config.decoding_window_size = 1024
         if not hasattr(self.config, 'decoding_recent_size'):
-            self.config.decoding_recent_size = 256
+            self.config.decoding_recent_size = 160 #256
         if not hasattr(self.config, 'prefill_windown_size'):
-            self.config.prefill_window_size = 1024
+            self.config.prefill_window_size = 512
         if not hasattr(self.config, 'prefill_recent_size'):
-            self.config.prefill_recent_size = 2  # 8
+            self.config.prefill_recent_size = 8  # 8
     
     
     self.kv_cluster = ALLKVCluster(

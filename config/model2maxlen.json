@@ -10,6 +10,7 @@
     "llama-7b": 4096,
     "Llama-3.2-1B-Instruct": 4096,
     "Llama-2-7b-chat-hf": 4096,
+    "Llama-3.1-8B-Instruct": 4096,
     "Llama-2-7b-hf": 4096,
     "llama-13b": 4096,
     "Llama-2-13b-chat-hf": 4096,

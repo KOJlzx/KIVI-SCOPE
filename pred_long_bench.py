@@ -6,6 +6,7 @@ from tqdm import tqdm
 import numpy as np
 import random
 import argparse
+import transformers
 os.environ["WANDB_DISABLED"] = "true"
 
 from utils.process_args import process_args
@@ -217,6 +218,7 @@ if __name__ == '__main__':
                 cache_dir=training_args.cache_dir,
                 torch_dtype=torch.float16,
                 low_cpu_mem_usage=True,
+                use_flash_attention_2=True,
                 device_map="auto",
             )
         else:

@@ -134,7 +134,50 @@ class ALLKVCluster():
             value_states = restore_kv(value_states, num_key_value_groups)
         return key_states, value_states
     
-    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 512 + 8, window_size = 8, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
+    def update_kv_streaming(self, key_states, query_states, value_states, max_capacity_prompt = 8 + 512 + 8, window_size = 8, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
+        
+        # check if prefix phase
+        assert key_states.shape[-2] == query_states.shape[-2]
+        bsz, num_heads, q_len, head_dim = query_states.shape
+        
+        # print(q_len, max_capacity_prompt)
+        if q_len < max_capacity_prompt:
+            ALLKVCluster.max_capacity_prompt = key_states.shape[-2]
+            return key_states, value_states
+        else:
+            key_states_sink = key_states[..., : window_size , :]
+            key_states = key_states[..., window_size :, :]
+            value_states_sink = value_states[..., : window_size , :]
+            value_states = value_states[..., window_size :, :]
+            attn_weights = torch.matmul(query_states[..., -window_size:, :], key_states.transpose(2, 3)) / math.sqrt(head_dim)
+            mask = torch.full((window_size, window_size), torch.finfo(attn_weights.dtype).min, device=attn_weights.device)
+            mask_cond = torch.arange(mask.size(-1), device=attn_weights.device)
+            mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)
+            mask = mask.to(attn_weights.device)
+            attention_mask = mask[None, None, :, :]
+
+            attn_weights[:, :, -window_size:, -window_size:] += attention_mask
+
+            attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+            attn_weights_sum = attn_weights[:, :, -window_size:, : -window_size].sum(dim = -2)
+            if pooling == 'avgpool':
+                attn_cache = F.avg_pool1d(attn_weights_sum, kernel_size = kernel_size, padding=kernel_size//2, stride=1)
+            elif pooling == 'maxpool':
+                attn_cache = F.max_pool1d(attn_weights_sum, kernel_size = kernel_size, padding=kernel_size//2, stride=1)
+            else:
+                raise ValueError('Pooling method not supported')
+            indices = attn_cache.topk(max_capacity_prompt - window_size, dim=-1).indices
+            indices = indices.unsqueeze(-1).expand(-1, -1, -1, head_dim)
+            k_past_compress = key_states[:, :, :-window_size, :].gather(dim = 2, index = indices)
+            v_past_compress = value_states[:, :, :-window_size, :].gather(dim = 2, index = indices)
+            k_cur = key_states[:, :, -window_size:, :]
+            v_cur = value_states[:, :, -window_size:, :]
+            key_states = torch.cat([key_states_sink, k_past_compress, k_cur], dim = 2)
+            value_states = torch.cat([value_states_sink, v_past_compress, v_cur], dim = 2)
+            ALLKVCluster.max_capacity_prompt = key_states.shape[-2]
+            return key_states, value_states
+        
+    def update_kv_snap(self, key_states, query_states, value_states, max_capacity_prompt = 1024 + 64, window_size = 64, kernel_size = 5, pooling = 'avgpool', num_key_value_groups = None):
         
         # check if prefix phase
         assert key_states.shape[-2] == query_states.shape[-2]

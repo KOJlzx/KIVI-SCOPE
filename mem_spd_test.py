@@ -6,8 +6,8 @@ from transformers import LlamaConfig, AutoTokenizer
 import time
 
 torch.cuda.empty_cache()
-K_BITS = 32
-V_BITS = 32
+K_BITS = 2
+V_BITS = 2
 GROUP_SIZE = 32
 RESIDUAL_LENGTH = 128
 BATCH_SIZE = 5
@@ -56,7 +56,7 @@ model.cuda().eval()
 context = []
 batch_size = BATCH_SIZE
 prompt_lenth = 2048
-output_length = 6144
+output_length = 10240
 num_repeats = 1
 for _ in range(batch_size):
     string = 't,' * (prompt_lenth // 2)

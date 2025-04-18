@@ -348,7 +348,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
         value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
-
+        
         kv_seq_len = key_states.shape[-2]
         if past_key_value is not None:
             kv_seq_len += past_key_value[-1]
@@ -446,16 +446,16 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
                     value_states_quant = value_states_quant_new
                     value_scale = scale
                     value_mn = mn
-            # if key_states_full is None:
-            # # past_key_value = (key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, kv_seq_len) if use_cache else None        
-            #     key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans = self.kv_cluster.update_quant_kv_in_decoding(query_states, 
-            #     key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, 
-            #     self.group_size, self.k_bits
-            #     )
+            if key_states_full is None:
+            # past_key_value = (key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, kv_seq_len) if use_cache else None        
+                key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans = self.kv_cluster.update_quant_kv_in_decoding(query_states, 
+                key_states_quant_trans, key_states_full, key_scale_trans, key_mn_trans, value_states_quant, value_states_full, value_scale, value_mn, key_mx_trans, 
+                self.group_size, self.k_bits
+                )
         else:
             # print(f"kivi with flash! {self.k_bits}")
             # key_states_compress, value_states_compress = self.kv_cluster.update_kv_snap(key_states, query_states, value_states)
-
+            key_states_compress, value_states_compress = self.kv_cluster.update_kv_snap(key_states, query_states, value_states)
             input_dtype = query_states.dtype
             if input_dtype == torch.float32:
                 # Handle the case where the model is quantized
@@ -477,7 +477,7 @@ class LlamaFlashAttention_KIVI(LlamaAttention_KIVI):
                 query_states.transpose(1, 2), key_states.transpose(1, 2), 
                 value_states.transpose(1, 2), None, q_len, dropout=0.0
             )
-            # key_states, value_states = key_states_compress, value_states_compress
+            key_states, value_states = key_states_compress, value_states_compress
             # quantize
             if key_states.shape[-2] % self.residual_length != 0:
                 if key_states.shape[-2] < self.residual_length:

@@ -95,7 +95,7 @@ def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset
 
 def get_pred_batch(model, tokenizer, data, max_length, max_gen, prompt_format, dataset, device, model_name, batch_size=1):
     preds = []
-    data = data.select(range(16))
+    data = data.select(range(50))
     # 针对samsum任务的特殊性，可能需要逐条处理
     if dataset == "samsum":
         for json_obj in tqdm(data):
